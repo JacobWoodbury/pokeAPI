@@ -9,12 +9,32 @@ export default function Item() {
   const [input, setInput] = React.useState("");
   const [isSearch, setIsSearch] = React.useState(false);
   const [lastSearch, setLastSearch] = React.useState(""); 
+  const [evoUrls, setEvoUrls] = React.useState([]);//new code-------------
+  const [evoList, setEvoList] = React.useState([])
   
   React.useEffect(() => {
     fetchData();
+
+    fetch(`https://pokeapi.co/api/v2/evolution-chain/`)
+    .then((response) => response.json())
+    .then((json)=> setEvoUrls(json.results))
+    .catch((error) => setError(error));
     }, []);
 
+    React.useEffect(() => {
+      
+      if(evoUrls != []){
+        evoUrls.forEach(url => {
+          fetch(url)
+          .then((response) => response.json())
+          .then((json) => {setEvoList((prev)=> [...prev, json])})
+          .catch((error) => setError(error));
+        });
+      }
 
+    },[evoUrls]);
+  
+  }
   function fetchData(name) {
     setData(null)
     setError(null)
@@ -54,7 +74,7 @@ export default function Item() {
     fetchData(input);
     setInput("");
   }
-  
+  function update()
   return (
     <main>
       <div className="pokemon-card">
