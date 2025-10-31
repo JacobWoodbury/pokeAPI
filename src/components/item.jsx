@@ -11,11 +11,12 @@ export default function Item() {
   const [lastSearch, setLastSearch] = React.useState(""); 
   const [evoUrls, setEvoUrls] = React.useState([]);//new code-------------
   const [evoList, setEvoList] = React.useState([])
+  const [currentEvo, setCurrentEvo] = React.useState("")
   
   React.useEffect(() => {
     fetchData();
 
-    fetch(`https://pokeapi.co/api/v2/evolution-chain/`)
+    fetch(`https://pokeapi.co/api/v2/evolution-chain?offset=20&limit=550`)
     .then((response) => response.json())
     .then((json)=> setEvoUrls(json.results))
     .catch((error) => setError(error));
@@ -25,7 +26,7 @@ export default function Item() {
       
       if(evoUrls != []){
         evoUrls.forEach(url => {
-          fetch(url)
+          fetch(url.url)
           .then((response) => response.json())
           .then((json) => {setEvoList((prev)=> [...prev, json])})
           .catch((error) => setError(error));
@@ -34,19 +35,17 @@ export default function Item() {
 
     },[evoUrls]);
   
-  }
+  
   function fetchData(name) {
     setData(null)
     setError(null)
     setClicked(true)
     let endpoint;
  
-
     if (name) {
       name = name.toLowerCase();
       endpoint = `https://pokeapi.co/api/v2/pokemon/${name}`;
     } 
-    
     else {
       const randomNum = Math.floor(Math.random() * 1100) + 1;
       endpoint = `https://pokeapi.co/api/v2/pokemon/${randomNum}`;
@@ -74,7 +73,20 @@ export default function Item() {
     fetchData(input);
     setInput("");
   }
-  function update()
+  
+  function getNextEvo(){
+    console.log("clicked")
+    console.log(evoList)
+    if(data != null && evoList != []){
+      for(let i=0; i<evoList.length; i++){
+        console.log(evoList[i].chain.species.name +" == " + data.name)
+        if(evoList[i].chain.species.name == data.name){
+          setCurrentEvo(evoList[i].chain.evolves_to[0].species.name)
+          console.log("evo set to: " + evoList[i].chain.evolves_to[0].species.name)
+        }
+      }
+    }
+  }
   return (
     <main>
       <div className="pokemon-card">
@@ -104,6 +116,9 @@ export default function Item() {
         <button type="submit">Search</button>
       </form>
       <button onClick={() => fetchData()}>Catch a Random Pokémon</button>
+      <button onClick={getNextEvo}>show Evolution</button>
+      {currentEvo? <p>{currentEvo}</p>: <p>No Evolution</p>}
     </main>
   );
+
 }
